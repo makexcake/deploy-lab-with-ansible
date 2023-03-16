@@ -1,13 +1,5 @@
-terraform {
-    required_version = ">=0.12"
-    backend "s3" {
-      bucket = "vit-envs"
-      key = "deploy-lab/terraform.tfstate"
-      region = "eu-central-1"
-    }   
-}
-
 provider "aws" {}
+
 variable vpc_cidr_block {}
 variable subnet_cidr_block {}
 variable avail_zone {}
