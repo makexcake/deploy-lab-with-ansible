@@ -22,7 +22,7 @@ $ terraform init
 $ terraform apply
 ```
 
-
+The script will provision an EC2 instances, afterwards will deploy Jenkins and Nexus containers on the instances.
 
 
 ## Contributing
