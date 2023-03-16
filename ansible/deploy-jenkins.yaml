@@ -1,0 +1,98 @@
+---
+# wait for the instance to get ready
+- name: Wait for ssh port to open
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: wait for port 22
+      wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        delay: 10
+        timeout: 100
+        search_regex: OpenSSH
+      vars:
+        ansible_connection: local
+        #ansible_python_interpreter: /usr/bin/python
+
+
+- name: Install python3 and docker
+  vars_files:
+    - project-values
+  hosts: all
+  become: yes
+  gather_facts: false
+  tasks: 
+
+    - name: install python3 and docker
+      vars:
+        ansible_python_interpreter: /usr/bin/python
+      yum:
+        name: 
+          - python3
+          - docker
+        update_cache: yes
+        state: present
+
+
+- name: Create docker user and start docker daemon
+  vars_files:
+    - project-values
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+
+    - name: Start docker daemon
+      systemd: 
+        name: docker
+        state: started    
+
+    - name: create docker user and add it to docker group
+      user:
+        name: dockeruser
+        groups: docker
+        append: yes    
+
+    - name: recconect to server session
+      meta: reset_connection
+
+    - name: install required python packages
+      pip:
+        name: 
+        - docker
+        - docker-compose
+
+    - name: get docker location 
+      shell: which docker
+      register: docker_location
+
+
+- name: Run jenkins container
+  hosts: all 
+  become: yes
+  become_user: dockeruser
+  vars_files:
+    - project-values
+  tasks: 
+
+    - name: Create jenkins container
+      community.docker.docker_container:
+        name: jenkins
+        image: jenkins/jenkins:lts
+        detach: yes
+        ports: 
+          - 8080:8080
+          - 50000:50000
+        volumes:
+          - jenkins_home:/var/jenkins_home
+          - /var/run/docker.sock:/var/run/docker.sock
+          - '{{ docker_location }}:/usr/bin/docker jenkins/jenkins:lts'
+        restart_policy: always
+
+
+      
+
+    
+
+  
