@@ -9,7 +9,7 @@ Ansible machine must have python 3, Terraform and Ansible installed with the pyt
 Install python packages with the following command:
 
 ```bash
-pip3 install -r requirements
+pip3 install -r requirements.txt
 ```
 
 ## Usage
